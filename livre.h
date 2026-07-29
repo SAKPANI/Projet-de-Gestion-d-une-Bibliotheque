@@ -1,5 +1,6 @@
 #ifndef LIVRE_H
 #define LIVRE_H
+#define MAX 1000
 
 typedef struct Livre{
     char isbn[14];
@@ -14,7 +15,7 @@ typedef struct Livre{
 // Liste chaînée des livres
 
 typedef struct Tlivre{
-    livre L;
+    livre donne;
     struct Tlivre *suivant;
 }liste_livre;
 
@@ -31,17 +32,18 @@ typedef struct {
 // ABR des livres
 
 typedef struct abrLivre{
-    livre L;
+    livre donne;
     struct abrLivre *gauche;
     struct abrLivre *droit;
 }abrLivre;
 
 
 // Fonctions liste
+void Initialiser(collection *l);
 
 liste_livre *CreerMaillon(livre l);
 
-void AjoutLivre(collection *c);
+void AjoutLivre(collection *tete, livre l);
 
 
 // Fonctions ABR
