@@ -6,12 +6,12 @@
 
 //Operation  sur les prototypes des liste chaine
 liste_livre *CreerMaillon(livre l){
-    liste_livre *nouveau=(collection*)malloc(sizeof(collection));
+    liste_livre *nouveau=(liste_livre*)malloc(sizeof(liste_livre));
     if(nouveau == NULL){
         printf("Erreur de malloc");
         exit(1);
     }
-    strncpy(nouveau->donne.isbn, l.isbn, 30);
+    strncpy(nouveau->donne.isbn, l.isbn, 13);
     strncpy(nouveau->donne.titre, l.titre, 99);
     strncpy(nouveau->donne.auteur, l.auteur, 99);
 
@@ -20,9 +20,9 @@ liste_livre *CreerMaillon(livre l){
     nouveau->donne.exemplaires_reste=l.exemplaires_reste;
 
     //Securite sur le fonctionnemnt des chaines de caractere
-    nouveau->donne.auteur[99]="\0";
-    nouveau->donne.titre[99]="\0";
-    nouveau->donne.isbn[13]="\0";
+    nouveau->donne.auteur[99]='\0';
+    nouveau->donne.titre[99]='\0';
+    nouveau->donne.isbn[13]='\0';
 
     nouveau->suivant=NULL;
 
@@ -30,28 +30,39 @@ liste_livre *CreerMaillon(livre l){
 }
 
 
-//Fonction d'ajpou d'un livre (insertion en tete de liste)
-void AjoutLivre(collection *tete, livre l){
-    liste_livre *nouveau=CreerMaillon(l);
-    nouveau->suivant=tete->premier;
-    tete->premier=nouveau;
-    if(tete->premier == NULL){
-        tete->dernier=nouveau;
-    }
-    tete->nombreLivre ++;
+void Initialiser(collection *l){
+    l->premier=NULL;
+    l->dernier =NULL;
+    l->nombreLivre=0;
 }
 
+
+//Fonction d'ajpou d'un livre (insertion en tete de liste)
+void AjoutLivre(collection *tete, livre l){
+    liste_livre *nouveau = CreerMaillon(l);
+    if(tete->premier == NULL){
+        tete->premier=nouveau;
+        tete->dernier-nouveau;
+    }
+    else {
+        liste_livre *nouveau=CreerMaillon(l);
+        nouveau->suivant=tete->premier;
+        tete->premier=nouveau;
+        tete->nombreLivre ++;
+    }
+}
 
 
 //Fonction de ABR
 
 abrLivre *CreerNoeud(livre l){
-
+    
     abrLivre *nouveau=(abrLivre*)malloc(sizeof(abrLivre));
     if(nouveau == NULL){
         printf("Erreur malocc de l'ABR");
         exit(1);
     }
+
     strncpy(nouveau->donne.isbn, l.isbn, 13);
     strncpy(nouveau->donne.titre, l.titre, 99);
     strncpy(nouveau->donne.auteur ,l.auteur, 99);
@@ -60,9 +71,9 @@ abrLivre *CreerNoeud(livre l){
     nouveau->donne.exemplaires_reste=l.exemplaires_reste;
 
     //Securite sur les tableau de chaine de caractere
-    nouveau->donne.isbn[13]= "\0";
-    nouveau->donne.titre[99]= "\0";
-    nouveau->donne.auteur[99]= "\0";
+    nouveau->donne.isbn[13]= '\0';
+    nouveau->donne.titre[99]= '\0';
+    nouveau->donne.auteur[99]= '\0';
 
     nouveau->gauche=NULL;
     nouveau->droit =NULL;
@@ -76,10 +87,13 @@ abrLivre *InsererLivre(abrLivre *racine, livre l){
     if(racine == NULL){
         return CreerNoeud(l);
     }
-    else if(l.annee < racine->donne.annee){
+    int comparaison = strcmp(l.isbn , racine->donne.isbn);
+
+    if(comparaison<0){
         racine->gauche=InsererLivre(racine->gauche, l);
     }
-    else if(l.annee > racine->donne.annee){
+
+    else if(comparaison>0){
         racine->droit=InsererLivre(racine->droit, l);
     }
     return racine;
@@ -88,33 +102,100 @@ abrLivre *InsererLivre(abrLivre *racine, livre l){
 
 
 //Recherche par isbn
-abrLivre *RechercheLivre(abrLivre *racine, livre l){
-    int comparaisonCaractere=strcmp(l.isbn, racine->donne.isbn) ;
+abrLivre *RechercheLivre(abrLivre *racine, char isbn[]){
     if(racine == NULL){
         return NULL;
     }
+
+    int comparaisonCaractere=strcmp(isbn, racine->donne.isbn);
+    if(comparaisonCaractere == 0){
+        return  racine;
+    }
+
     else if(comparaisonCaractere <0 ){
-        return RechercheLivre(racine->gauche, l);
+        return RechercheLivre(racine->gauche, isbn);
     }
     else if(comparaisonCaractere > 0){
-        return RechercheLivre(racine->droit, l);
-    }
-    else if(comparaisonCaractere == 0){
-        return racine;
+        return RechercheLivre(racine->droit, isbn);
     }
     return NULL;
 }
 
 
-//Affichage par trie par auteur et titre 
+//Recherche du minimum  de l'arbre
 
-void AffichageTrier(livre Livre[MAX], collection *tete){
+abrLivre *minimum(abrLivre *racine){
+    if(racine == NULL || racine->gauche==NULL){
+        return racine;
+    }
+    else{
+        return minimum(racine->gauche);
+    }
+}
+
+
+//SUPPRESSION D'UN LIVRE
+abrLivre *SupprimerLivre(abrLivre *racine, char isbn[]){
+    if(racine == NULL){
+        return NULL;
+    }
+
+    int comparaison = strcmp(isbn, racine->donne.isbn) ;
+
+    if(comparaison < 0){
+        racine->gauche =SupprimerLivre(racine->gauche, isbn);
+    }
+
+    else if(comparaison>0){
+        racine->droit = SupprimerLivre(racine->droit, isbn);
+    }
+
+    else{
+        if(racine->gauche == NULL && racine->droit ==NULL){
+            free(racine);
+            return NULL;
+        }
+        else if(racine->gauche == NULL && racine->droit){
+            abrLivre *temp = racine->droit ;
+            free(racine);
+            return temp;
+        }
+        else if(racine->gauche !=NULL && racine->droit == NULL){
+            abrLivre *temp=racine->gauche;
+            free(racine);
+            return temp;
+        }
+        else if(racine->gauche !=NULL && racine->droit !=NULL){
+            abrLivre *successeur = minimum(racine->droit);
+            racine->donne = successeur->donne;
+            racine->droit = SupprimerLivre(racine->droit, successeur->donne.isbn);
+        }
+    }
+    return racine;
     
+}
+
+
+
+
+
+
+//Affichage par trie par auteur et titre 
+void AffichageTrier(livre Livre[MAX], collection *tete){
+    int i=0;
     int taille=tete->nombreLivre;
-    livre temp=Livre[0];
+    livre temp = Livre[0];
+    liste_livre *courant =tete->premier;
+
+    while(courant!=NULL){
+        Livre[i]=courant->donne;
+        courant = courant->suivant;
+        i++;
+    }
+
 
     for(int i = 0; i<taille - 1; i++){
-        for(int j=i+1; j<taille - 1; j++){
+        for(int j=i+1; j<taille; j++){
             int comparaison1=strcmp(Livre[i].isbn, Livre[j].isbn);
             int comparaison2=strcmp(Livre[i].auteur, Livre[j].auteur);
 

@@ -50,13 +50,13 @@ void AjoutLivre(collection *tete, livre l);
 
 abrLivre *CreerNoeud(livre l);
 
-abrLivre *InsererLivre(abrLivre *racine, livre l);
+abrLivre *InsererLivre(abrLivre *racine, char isbn[]);
 
 abrLivre *RechercheLivre(abrLivre *racine, char isbn[]);
 
 abrLivre *SupprimerLivre(abrLivre *racine, char isbn[]);
 
-void Affichage_Trie(abrLivre *racine);
+void AffichageTrier(livre Livre[MAX], collection *tete);
 
 
 #endif
